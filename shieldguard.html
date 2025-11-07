@@ -1,0 +1,479 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Shield Guardian - Threat Awareness Dashboard</title>
+  <style>
+    /* --- Reset and base --- */
+    *, *::before, *::after {
+      box-sizing: border-box;
+    }
+    body {
+      margin: 0;
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      background-color: #f3f5f9;
+      color: #1e293b;
+      -webkit-font-smoothing: antialiased;
+      -moz-osx-font-smoothing: grayscale;
+    }
+    a {
+      text-decoration: none;
+      color: inherit;
+    }
+    ul {
+      padding-left: 1.2em;
+      margin: 0.5em 0 0 0;
+    }
+    button {
+      cursor: pointer;
+      background: transparent;
+      border: none;
+      outline: none; 
+    }
+
+    /* --- Header --- */
+    header {
+      background-color: #0f172a;
+      padding: 0 2rem;
+      height: 60px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      color: white;
+      box-shadow: 0 2px 4px rgb(15 23 42 / 0.2);
+    }
+    .logo {
+      font-weight: 700;
+      font-size: 1.2rem;
+      display: flex;
+      align-items: center;
+      gap: 0.6rem;
+    }
+    .logo svg {
+      width: 24px;
+      height: 24px;
+      fill: white;
+    }
+    nav {
+      display: flex;
+      gap: 1.8rem;
+      font-weight: 600;
+      font-size: 0.9rem;
+    }
+    nav a {
+      color: #cbd5e1;
+      padding: 0.5rem 0;
+      transition: color 0.2s ease;
+    }
+    nav a:hover,
+    nav a:focus {
+      color: #e2e8f0;
+      border-bottom: 2px solid #1d4ed8;
+    }
+
+    /* --- Main layout --- */
+    main {
+      max-width: 1200px;
+      margin: 2rem auto 3rem;
+      padding: 0 1rem;
+      display: grid;
+      grid-template-columns: 2.5fr 1.5fr;
+      gap: 2rem;
+      min-height: 500px;
+    }
+
+    /* --- Threat Awareness Dashboard --- */
+    section.dashboard {
+      display: flex;
+      flex-direction: column;
+      gap: 1.8rem;
+    }
+    section.dashboard h1 {
+      margin-bottom: 1.6rem;
+      font-size: 1.8rem;
+      font-weight: 700;
+      color: #0f172a;
+    }
+    .card {
+      background: white;
+      border-radius: 14px;
+      box-shadow: 0 8px 15px rgba(15,23,42,0.1);
+      padding: 1.6rem 2rem;
+      display: flex;
+      flex-direction: column;
+      gap: 1rem;
+    }
+
+    /* --- Phishing alert card --- */
+    .alert-card {
+      display: flex;
+      align-items: center;
+      gap: 1.4rem;
+      border-left: 5px solid #ef4444; /* red */
+      background: #fee2e2;
+      color: #b91c1c;
+      font-weight: 600;
+      font-size: 1.1rem;
+    }
+    .alert-icon {
+      background-color: #b91c1c;
+      color: white;
+      font-weight: 700;
+      font-size: 1.4rem;
+      line-height: 1;
+      border-radius: 50%;
+      width: 32px;
+      height: 32px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      user-select: none;
+    }
+    .alert-info {
+      flex-grow: 1;
+    }
+    .alert-info span {
+      font-weight: 400;
+      font-size: 0.85rem;
+      color: #731f1f;
+      display: block;
+      margin-top: 0.2rem;
+    }
+    .sub-alerts {
+      margin-top: 1rem;
+      display: flex;
+      gap: 0.8rem;
+    }
+    .sub-alert {
+      flex: 1;
+      text-align: center;
+      padding: 0.7rem 0;
+      border-radius: 10px;
+      font-weight: 600;
+      font-size: 0.9rem;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 0.5rem;
+      user-select: none;
+      cursor: default;
+    }
+    .sub-alert.malware {
+      background: #dbeafe;
+      color: #1e40af;
+    }
+    .sub-alert.scams {
+      background: #fef3c7;
+      color: #92400e;
+    }
+    .sub-alert svg {
+      width: 16px;
+      height: 16px;
+      flex-shrink: 0;
+    }
+
+    /* --- Tool cards --- */
+    .tool-card {
+      background: white;
+      border-radius: 14px;
+      box-shadow: 0 8px 15px rgba(15,23,42,0.1);
+      padding: 1.6rem 2rem;
+      font-weight: 600;
+      font-size: 1.05rem;
+      color: #0f172a;
+      display: flex;
+      align-items: center;
+      gap: 1rem;
+      cursor: pointer;
+      user-select: none;
+      transition: background 0.2s ease;
+    }
+    .tool-card:hover,
+    .tool-card:focus {
+      background: #e0e7ff;
+      outline: none;
+    }
+    .tool-icon {
+      width: 28px;
+      height: 28px;
+      fill: #3b82f6;
+      flex-shrink: 0;
+    }
+    .tool-desc {
+      font-weight: 400;
+      font-size: 0.9rem;
+      color: #475569;
+    }
+    .tool-container {
+      display: flex;
+      flex-direction: column;
+      gap: 1.4rem;
+    }
+
+    /* --- AI Cyber Assistant --- */
+    aside.assistant {
+      background: white;
+      border-radius: 14px;
+      box-shadow: 0 8px 15px rgba(15,23,42,0.1);
+      padding: 1.6rem 1.8rem 2rem;
+      display: flex;
+      flex-direction: column;
+      height: fit-content;
+      max-height: 600px;
+      box-sizing: border-box;
+    }
+    aside.assistant h2 {
+      font-weight: 700;
+      font-size: 1.2rem;
+      color: #0f172a;
+      margin-bottom: 1rem;
+    }
+    .chat-bubble {
+      background: #f1f5f9;
+      border-radius: 18px;
+      padding: 0.8rem 1rem;
+      margin-bottom: 0.6rem;
+      font-size: 0.95rem;
+      line-height: 1.3;
+      max-width: 100%;
+      white-space: pre-wrap;
+    }
+    .chat-bubble.user {
+      background: #dbeafe;
+      align-self: flex-start;
+    }
+    .chat-bubble.answer {
+      background: white;
+      box-shadow: 0 0 6px rgba(0,0,0,0.05);
+      color: #334155;
+      align-self: flex-start;
+    }
+    input.chat-input {
+      border: 1.5px solid #cbd5e1;
+      border-radius: 20px;
+      padding: 0.8rem 1rem;
+      font-size: 1rem;
+      margin-top: auto;
+      outline-offset: 2px;
+      width: 100%;
+      box-sizing: border-box;
+      transition: border-color 0.2s ease;
+    }
+    input.chat-input:focus {
+      border-color: #3b82f6;
+    }
+    .send-btn {
+      position: relative;
+      right: 36px;
+      top: -36px;
+      background: transparent;
+      border: none;
+      padding: 0;
+      cursor: pointer;
+      color: #3b82f6;
+      font-weight: 700;
+      font-size: 1.3rem;
+      user-select: none;
+    }
+    .send-btn:hover {
+      color: #2563eb;
+    }
+
+    /* --- Responsive --- */
+    @media (max-width: 900px) {
+      main {
+        grid-template-columns: 1fr;
+      }
+      aside.assistant {
+        max-height: none;
+        margin-top: 2rem;
+      }
+    }
+  </style>
+</head>
+<body>
+  <!-- Header -->
+  <header>
+    <a href="#" class="logo" aria-label="Shield Guardian Home">
+      <!-- Shield icon svg -->
+      <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+        <path d="M12 1.75L3 5v6a9 9 0 0018 0V5l-9-3.25zM5 10V6.16l7-2.52 7 2.52V10a7 7 0 01-14 0z" />
+      </svg>
+      Shield Guardian
+    </a>
+    <nav aria-label="Primary Navigation">
+      <a href="#" tabindex="0">Home</a>
+      <a href="#" tabindex="0">Dashboard</a>
+      <a href="#" tabindex="0">Cyber Assistant</a>
+      <a href="#" tabindex="0">Security Tools</a>
+      <a href="#" tabindex="0">Learning Hub</a>
+      <a href="#" tabindex="0">About</a>
+      <a href="#" tabindex="0">Contact</a>
+    </nav>
+  </header>
+
+  <!-- Main content -->
+  <main>
+    <!-- Threat Awareness Dashboard -->
+    <section class="dashboard" aria-labelledby="dashboard-title">
+      <h1 id="dashboard-title">Threat Awareness Dashboard</h1>
+
+      <!-- Phishing Card -->
+      <div class="card alert-card" role="alert" aria-live="polite">
+        <div class="alert-icon" aria-hidden="true">!</div>
+        <div class="alert-info">
+          Phishing attacks
+          <span aria-label="Increase of 30% this week" role="status">&#8593; 30% this week</span>
+          <div class="sub-alerts" role="list">
+            <div class="sub-alert malware" role="listitem" aria-label="Malware alert">
+              <!-- Malware Icon -->
+              <svg xmlns="http://www.w3.org/2000/svg" fill="currentColor" viewBox="0 0 24 24">
+                <path d="M12 4V1m0 22v-3M4.22 4.22l-2.12-2.12M19.78 19.78l-2.12-2.12M1 12H4m16 0h3M4.22 19.78l-2.12 2.12M19.78 4.22l-2.12 2.12"/>
+              </svg>
+              Malware
+            </div>
+            <div class="sub-alert scams" role="listitem" aria-label="Scams alert">
+              <!-- Scams Icon -->
+              <svg xmlns="http://www.w3.org/2000/svg" fill="currentColor" viewBox="0 0 24 24">
+                <path d="M5 13l4 4L19 7" stroke="#92400e" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
+              </svg>
+              Scams
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Security Check Tool -->
+      <div class="card tool-card" tabindex="0" role="button" aria-pressed="false" aria-label="Security Check Tool, test your password strength">
+        <!-- Shield icon -->
+        <svg class="tool-icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+          <path d="M12 1.75L3 5v6a9 9 0 0018 0V5l-9-3.25zM5 10V6.16l7-2.52 7 2.52V10a7 7 0 01-14 0z" />
+        </svg>
+        <div>
+          <div>Security Check Tool</div>
+          <div class="tool-desc">Test your password strength</div>
+        </div>
+      </div>
+
+      <!-- Learning Hub -->
+      <div class="card tool-card" tabindex="0" role="button" aria-pressed="false" aria-label="Learning Hub with tutorials and infographics">
+        <!-- Graduation cap icon -->
+        <svg class="tool-icon" fill="currentColor" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+          <path d="M12 2L2 7l10 5 10-5-10-5zm0 10L2 7v7l10 5 10-5V7l-10 5z" />
+        </svg>
+        <div>
+          <div>Learning Hub</div>
+          <div class="tool-desc">Tutorials and infographics</div>
+        </div>
+      </div>
+    </section>
+
+    <!-- AI Cyber Assistant -->
+    <aside class="assistant" aria-labelledby="assistant-title" aria-live="polite">
+      <h2 id="assistant-title">AI Cyber Assistant</h2>
+      <div id="chat-box" aria-live="polite" role="log" style="flex-grow: 1; overflow-y: auto; max-height: 340px; margin-bottom: 1rem;">
+        <div class="chat-bubble user" role="article" aria-label="User question">
+          How can I help you Today?
+        </div>
+        <div class="chat-bubble user" role="article" aria-label="User question">
+          How do I know if an email is fake?
+        </div>
+        <div class="chat-bubble answer" role="article" aria-label="Assistant's answer">
+          <ul>
+            <li>Unfamiliar sender</li>
+            <li>Misspelled words or grammar errors</li>
+            <li>Suspicious links</li>
+          </ul>
+        </div>
+      </div>
+
+      <form id="chat-form" aria-label="Send message to AI Cyber Assistant" role="search" autocomplete="off">
+        <input
+          type="text"
+          id="chat-input"
+          class="chat-input"
+          placeholder="Type a message..."
+          aria-describedby="chat-desc"
+          aria-label="Type a message"
+          required
+        />
+        <button type="submit" class="send-btn" aria-label="Send message" title="Send message">&#9658;</button>
+      </form>
+    </aside>
+  </main>
+
+  <script>
+    // Simple chat UI simulation - no backend AI integration
+    const chatForm = document.getElementById('chat-form');
+    const chatInput = document.getElementById('chat-input');
+    const chatBox = document.getElementById('chat-box');
+
+    // Sample automated replies for demo
+    const autoReplies = {
+      'how do i know if an email is fake?': `You can check for these signs:
+- Unfamiliar sender
+- Misspelled words or grammar errors
+- Suspicious links`,
+      'what is phishing?': `Phishing is a fraudulent attempt to obtain sensitive information by disguising as a trustworthy entity.`,
+      'help': `Ask me anything about cybersecurity threats or protection tips!`,
+    };
+
+    chatForm.addEventListener('submit', (e) => {
+      e.preventDefault();
+      const userMsg = chatInput.value.trim();
+      if (!userMsg) return;
+
+      // Add user's message
+      const userBubble = document.createElement('div');
+      userBubble.className = 'chat-bubble user';
+      userBubble.setAttribute('role', 'article');
+      userBubble.setAttribute('aria-label', 'User question');
+      userBubble.textContent = userMsg;
+      chatBox.appendChild(userBubble);
+
+      // Scroll newest message into view
+      chatBox.scrollTop = chatBox.scrollHeight;
+
+      // Clear input
+      chatInput.value = '';
+
+      // Generate bot reply after short delay
+      setTimeout(() => {
+        const replyText =
+          autoReplies[userMsg.toLowerCase()] ||
+          "Sorry, I don't have an answer for that yet.";
+
+        const replyBubble = document.createElement('div');
+        replyBubble.className = 'chat-bubble answer';
+        replyBubble.setAttribute('role', 'article');
+        replyBubble.setAttribute('aria-label', "Assistant's answer");
+
+        // Format bullet list if reply contains new lines + "-"
+        if (replyText.includes('-')) {
+          const ul = document.createElement('ul');
+          replyText.split('\n').forEach((line) => {
+            const trimmed = line.trim();
+            if (trimmed.startsWith('-')) {
+              const li = document.createElement('li');
+              li.textContent = trimmed.substring(1).trim();
+              ul.appendChild(li);
+            } else {
+              // plain line fallback
+              const p = document.createElement('p');
+              p.textContent = trimmed;
+              replyBubble.appendChild(p);
+            }
+          });
+          replyBubble.appendChild(ul);
+        } else {
+          replyBubble.textContent = replyText;
+        }
+
+        chatBox.appendChild(replyBubble);
+        chatBox.scrollTop = chatBox.scrollHeight;
+      }, 800);
+    });
+  </script>
+</body>
+</html>
